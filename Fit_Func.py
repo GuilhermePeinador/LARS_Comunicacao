@@ -197,7 +197,3 @@ def fitness_func(solution):
     del df, df2
     return  frac # GA maximiza
 
-'''
-Criar a função de analise da série temporal da órbita para extrair informações extras para modificar a função objetivo.
-
-'''

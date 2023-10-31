@@ -3,11 +3,7 @@
 from datetime import datetime
 import numpy as np
 import pandas as pd
-'''
-Coordenadas Antena INPE Natal
-Latitude: -5.871778
-Longitude: -35.206864
-'''
+
 
 def resource_path(relative_path):
 
@@ -17,19 +13,19 @@ def resource_path(relative_path):
         base_path = os.path.abspath("src-LARS")
     return os.path.join(base_path, relative_path)
 
+
 #todo def
-# Mudar a função
 def calculacomunicacao(df, lat_gs, long_gs, elev):
     """
     :param df: DataFrame de rx, ry e rz do CubeSat:
     :param lat_gs: Latitude da Groundd Station em Graus (Norte)
     :param long_gs: Longitude da Groundd Station em Graus (Leste)
-    :param elev: Elevação mínima para comunicação da antena
+    :param elev: Elevação mínima para comunicação da antena em graus
     :return: Ângulo de comunicação entre satélite e ground station
     """
-
-    for i in range (df[df.columns[0]].count()):
-
+    Contato = []
+    for i in range(df[df.columns[0]].count()):
+        dt = 10
         R_E = 6371.00  # raio da Terra em km
 
         VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
@@ -38,28 +34,29 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
 
         VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
 
-        #Critério de Comunicação
+        # Critério de Comunicação
         AComunicacao = np.pi \
                 - np.arccos((np.dot(VetorSatelite,VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
                 - np.arccos((np.dot(VetorTerraEstacao,VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
 
+        if AComunicacao >= np.radians(90+elev):
+            Contato.append(1)
+        else:
+            Contato.append(0)
 
-        df6 = pd.DataFrame(AComunicacao, columns=['Contato'])
-        df = pd.concat([df,df6], axis=1)
+        A = np.where(Contato[:-1] != Contato[1:])[0]  # Index de onde ocorre a troca
+        B = np.diff(A)  # Calcula os intervalos
+        C = dt*B  # Multiplica por dt para ter o intervalo de tempo das passagens
+
+
+        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo de Contato'])
+        df = pd.concat([df, df6], axis=1)
+        df7 = pd.DataFrame(Contato, columns=['Contato'])
+        df = pd.concat([df, df7], axis=1)
         df["end"] = None
         df.to_csv("Tempo de comunicação.csv", sep=',')
-        # print(df)
 
         return df
-"""
-    Universidade Federal de Santa Catarina
-    Laboratory of Applications and Research in Space - LARS
-    Orbital Mechanics Division
-    Título do Algoritmo = Codigo principal de propagacao orbital e analise termica
-    Autor= Rodrigo S. Cardozo
-    Versão = 0.1.0
-    Data = 05/04/2023
-"""
 
 
 def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan: float, argumento_perigeu: float,
@@ -311,8 +308,8 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
         long.append(np.degrees(longitude))
     import os.path
     r = pd.DataFrame(r, columns=['rx', 'ry', 'rz'])
-    df2 = pd.DataFrame(data, columns=['Data'])
-    r = pd.concat([r,df2], axis=1)
+    dfdata = pd.DataFrame(data, columns=['Data'])
+    r = pd.concat([r, dfdata], axis=1)
     r['latitude'] = np.degrees(np.arcsin(r['rz'] / (r['rx']**2 + r['ry']**2 + r['rz']**2)**0.5))
     r['longitude'] = np.degrees(np.arctan2(r['ry'], r['rx']))
     r['r'] = np.sqrt(r['rx']**2 + r['ry']**2 + r['rz']**2)
@@ -320,18 +317,6 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
     #r.to_csv(os.path.join('./results/', 'ECEF_R.csv'), sep=',')
 
     return r
-
-"""
-    Universidade Federal de Santa Catarina
-    Thermal Fluid Flow Group (T2F) - Aerospace Engineering Team
-    Orbital Mechanics Division
-
-    Título do Algoritmo: Integrador de velocidade angular por quaternions
-    Autor: Rodrigo S. Cardozo
-    Versão: 0.1
-    Data: 08/07/2022
-"""
-
 
 def periodo_orbital(Perigeu):
     """
@@ -352,13 +337,13 @@ if __name__ == '__main__':
 
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
-    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 50, 10, 3.0, 0.1, 0.1, 0.2)
+    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 5, 10, 3.0, 0.1, 0.1, 0.2)
     #(data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
 
 
-    #plt3d(df)
-    plot_groundtrack_2D(df)
-    #print(df)
+    # plt3d(df)
+    # plot_groundtrack_2D(df)
+    print(df)
 
 
     df2 = calculacomunicacao(df)
