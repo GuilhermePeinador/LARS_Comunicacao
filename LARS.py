@@ -346,7 +346,7 @@ if __name__ == '__main__':
     print(df)
 
 
-    df2 = calculacomunicacao(df)
+    df2 = calculacomunicacao(df, , ,15)
 
     df2 = df2[0:-1]
     index = df2["Contato"].tolist()
