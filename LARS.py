@@ -4,7 +4,6 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-
 def resource_path(relative_path):
 
     try:
@@ -12,52 +11,6 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath("src-LARS")
     return os.path.join(base_path, relative_path)
-
-
-#todo def
-def calculacomunicacao(df, lat_gs, long_gs, elev):
-    """
-    :param df: DataFrame de rx, ry e rz do CubeSat:
-    :param lat_gs: Latitude da Groundd Station em Graus (Norte)
-    :param long_gs: Longitude da Groundd Station em Graus (Leste)
-    :param elev: Elevação mínima para comunicação da antena em graus
-    :return: Ângulo de comunicação entre satélite e ground station
-    """
-    Contato = []
-    for i in range(df[df.columns[0]].count()):
-        dt = 10
-        R_E = 6371.00  # raio da Terra em km
-
-        VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
-
-        VetorSatelite = np.array([df.iloc[i, df.columns.get_loc('rx')], df.iloc[i, df.columns.get_loc('ry')], df.iloc[i, df.columns.get_loc('rz')]])
-
-        VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
-
-        # Critério de Comunicação
-        AComunicacao = np.pi \
-                - np.arccos((np.dot(VetorSatelite,VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
-                - np.arccos((np.dot(VetorTerraEstacao,VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
-
-        if AComunicacao >= np.radians(90+elev):
-            Contato.append(1)
-        else:
-            Contato.append(0)
-
-        A = np.where(Contato[:-1] != Contato[1:])[0]  # Index de onde ocorre a troca
-        B = np.diff(A)  # Calcula os intervalos
-        C = dt*B  # Multiplica por dt para ter o intervalo de tempo das passagens
-
-
-        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo de Contato'])
-        df = pd.concat([df, df6], axis=1)
-        df7 = pd.DataFrame(Contato, columns=['Contato'])
-        df = pd.concat([df, df7], axis=1)
-        df["end"] = None
-        df.to_csv("Tempo de comunicação.csv", sep=',')
-
-        return df
-
 
 def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan: float, argumento_perigeu: float,
                        anomalia_verdadeira: float, inclinacao: float, num_orbitas: int, delt: float, massa: float, largura: float,
@@ -327,6 +280,58 @@ def periodo_orbital(Perigeu):
     T_orb = float(((2 * np.pi) / (np.sqrt(mu))) * (Perigeu ** (3 / 2)))
     return (T_orb)
 
+def calculacomunicacao(df, lat_gs, long_gs, elev):
+    """
+    :param df: DataFrame de rx, ry e rz do CubeSat:
+    :param lat_gs: Latitude da Groundd Station em Graus (Norte)
+    :param long_gs: Longitude da Groundd Station em Graus (Leste)
+    :param elev: Elevação mínima para comunicação da antena em graus
+    :return: Ângulo de comunicação entre satélite e ground station
+    """
+    Contato = []
+    for i in range(df[df.columns[0]].count()):
+        dt = 10
+        R_E = 6371.00  # raio da Terra em km
+
+        VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
+
+        VetorSatelite = np.array([df.iloc[i, df.columns.get_loc('rx')], df.iloc[i, df.columns.get_loc('ry')], df.iloc[i, df.columns.get_loc('rz')]])
+
+        VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
+
+        # Critério de Comunicação
+        AComunicacao = np.pi \
+                - np.arccos((np.dot(VetorSatelite,VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
+                - np.arccos((np.dot(VetorTerraEstacao,VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
+
+        if AComunicacao >= np.radians(90+elev):
+            Contato.append(1)
+        else:
+            Contato.append(0)
+
+        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo de Contato'])
+        df = pd.concat([df, df6], axis=1)
+        df7 = pd.DataFrame(Contato, columns=['Contato'])
+        df = pd.concat([df, df7], axis=1)
+        df["end"] = None
+        df.to_csv("Tempo de comunicação.csv", sep=',')
+
+        return df
+
+def TempoContato(Contato):
+
+    if Contato[0]==1:
+        start = np.concatenate((np.array([-1]),np.where(np.diff(Contato)==1)[0]))
+    else:
+        start =np.where(np.diff(Contato)==1)[0]
+
+    if Contato[-1]==1:
+        end = np.concatenate((np.where(np.diff(Contato)==-1)[0],np.array([len(Contato)-1])))
+    else:
+        end =np.where(np.diff(Contato)==-1)[0]
+
+    return end-start
+
 if __name__ == '__main__':
     from datetime import datetime
     import numpy as np
@@ -337,16 +342,16 @@ if __name__ == '__main__':
 
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
-    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 5, 10, 3.0, 0.1, 0.1, 0.2)
+    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 2, 10, 3.0, 0.1, 0.1, 0.2)
     #(data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
 
 
     # plt3d(df)
     # plot_groundtrack_2D(df)
-    print(df)
+    print(list(df.columns.values))
 
-
-    df2 = calculacomunicacao(df, , ,15)
+    ''''
+    df2 = calculacomunicacao(df, -5.871778, -35.206864,15)
 
     df2 = df2[0:-1]
     index = df2["Contato"].tolist()
@@ -355,3 +360,4 @@ if __name__ == '__main__':
     tempo_comunicacao_simulacao = index.count(1)
     tempo_comunicacao_total = tempo_comunicacao_simulacao*10
     #print(f'Tempo de comunicação (em segundos): {tempo_comunicacao_total}')
+    '''
