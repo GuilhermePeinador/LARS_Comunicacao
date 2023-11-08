@@ -301,8 +301,8 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
 
         # Critério de Comunicação
         AComunicacao = np.pi \
-                - np.arccos((np.dot(VetorSatelite,VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
-                - np.arccos((np.dot(VetorTerraEstacao,VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
+                - np.arccos((np.dot(VetorSatelite, VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
+                - np.arccos((np.dot(VetorTerraEstacao, VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
 
         if AComunicacao >= np.radians(90+elev):
             Contato.append(1)
@@ -318,19 +318,21 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
 
         return df
 
+
 def TempoContato(Contato):
 
-    if Contato[0]==1:
-        start = np.concatenate((np.array([-1]),np.where(np.diff(Contato)==1)[0]))
+    if Contato[0] == 1:
+        start = np.concatenate((np.array([-1]), np.where(np.diff(Contato) == 1)[0]))
     else:
-        start =np.where(np.diff(Contato)==1)[0]
+        start = np.where(np.diff(Contato) == 1)[0]
 
-    if Contato[-1]==1:
-        end = np.concatenate((np.where(np.diff(Contato)==-1)[0],np.array([len(Contato)-1])))
+    if Contato[-1] == 1:
+        end = np.concatenate((np.where(np.diff(Contato) == -1)[0], np.array([len(Contato)-1])))
     else:
-        end =np.where(np.diff(Contato)==-1)[0]
+        end = np.where(np.diff(Contato) == -1)[0]
 
     return end-start
+
 
 if __name__ == '__main__':
     from datetime import datetime
@@ -343,12 +345,16 @@ if __name__ == '__main__':
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
     df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 2, 10, 3.0, 0.1, 0.1, 0.2)
-    #(data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
-
+    # (data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+        print(df)
 
     # plt3d(df)
     # plot_groundtrack_2D(df)
+    # print(list(r.columns.values))
     print(list(df.columns.values))
+    print(df)
+
 
     ''''
     df2 = calculacomunicacao(df, -5.871778, -35.206864,15)
