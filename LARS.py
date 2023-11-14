@@ -267,9 +267,10 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
     r['longitude'] = np.degrees(np.arctan2(r['ry'], r['rx']))
     r['r'] = np.sqrt(r['rx']**2 + r['ry']**2 + r['rz']**2)
     r['end'] = 'end'
-    #r.to_csv(os.path.join('./results/', 'ECEF_R.csv'), sep=',')
+    # r.to_csv(os.path.join('./results/', 'ECEF_R.csv'), sep=',')
 
     return r
+
 
 def periodo_orbital(Perigeu):
     """
@@ -280,6 +281,7 @@ def periodo_orbital(Perigeu):
     T_orb = float(((2 * np.pi) / (np.sqrt(mu))) * (Perigeu ** (3 / 2)))
     return (T_orb)
 
+
 def calculacomunicacao(df, lat_gs, long_gs, elev):
     """
     :param df: DataFrame de rx, ry e rz do CubeSat:
@@ -288,6 +290,7 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
     :param elev: Elevação mínima para comunicação da antena em graus
     :return: Ângulo de comunicação entre satélite e ground station
     """
+
     Contato = []
     for i in range(df[df.columns[0]].count()):
         dt = 10
@@ -319,7 +322,10 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
         return df
 
 
-def TempoContato(Contato):
+def tempocontato(df):
+
+    Contato = df['Contato'].tolist()
+    Data = df['Data'].tolist()
 
     if Contato[0] == 1:
         start = np.concatenate((np.array([-1]), np.where(np.diff(Contato) == 1)[0]))
@@ -331,16 +337,20 @@ def TempoContato(Contato):
     else:
         end = np.where(np.diff(Contato) == -1)[0]
 
-    return end-start
+    tempodecontato = end-start
+
+    indexdapassagem = np.where(np.diff(Contato) == 1)
+    datapassagem = Data[indexdapassagem]
+
+    return tempodecontato
 
 
 if __name__ == '__main__':
     from datetime import datetime
     import numpy as np
     import pandas as pd
-#    from Plots import *
-    import os, sys
-
+    import os
+    import sys
 
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
@@ -349,14 +359,13 @@ if __name__ == '__main__':
     with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
         print(df)
 
+    '''
     # plt3d(df)
     # plot_groundtrack_2D(df)
     # print(list(r.columns.values))
     print(list(df.columns.values))
     print(df)
 
-
-    ''''
     df2 = calculacomunicacao(df, -5.871778, -35.206864,15)
 
     df2 = df2[0:-1]
