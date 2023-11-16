@@ -343,6 +343,8 @@ def tempocontato(df):
     npassagens = np.count(np.diff(Contato))                 # Número de passagens
     datapassagem = Data[indexdapassagem]                    # Data do início da passagem
 
+    indexdapassagem.tolist().count(1)
+
     # Como dt = 10 -> 8640 linhas são 24hrs
 
     return df
