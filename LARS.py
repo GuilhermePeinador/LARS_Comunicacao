@@ -343,10 +343,14 @@ def tempocontato(df):
 
     indexdapassagem = np.diff(Contato)                      # Index da passagem
 
-    datapassagem = Data[indexdapassagem]
+
+    for i in range(len(start)):                             # Salvando apenas o último valor
+        datapassagem = []
+        indexdata = start[i]                                # Index da data
+        datapassagem = Data[indexdata]                      # Data de passagem
 
 
-    # Como dt = 10 -> 8640 linhas são 24hrs
+    '''dt = 10 -> 8640 linhas são 24hrs'''
 
     return df
 
