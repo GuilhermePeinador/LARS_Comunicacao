@@ -339,10 +339,15 @@ def tempocontato(df):
 
     tempodecontato = end-start
 
-    indexdapassagem = np.where(np.diff(Contato) == 1)
+    indexdapassagem = np.where(np.diff(Contato) == 1)  # Index da passagem
+    npassagens = np.count(np.where(np.diff(Contato) == 1))  # Número de passagens
+
+
+    # Como dt = 10 -> 8640 linhas são 24hrs
+
     datapassagem = Data[indexdapassagem]
 
-    return tempodecontato
+    return df
 
 
 if __name__ == '__main__':
