@@ -337,13 +337,14 @@ def tempocontato(df):
     else:
         end = np.where(np.diff(Contato) == -1)[0]
 
-    tempodecontato = end-start
+    tempodecontato = end-start                              # Tempo de contato
     npassagens = len(start)                                 # Número de passagens
 
     ''' Data de passagem '''
+
     datapassagem = []
     for i in start:                             # iterando no start
-        datapassagem = Data[i]                  # Data de passage
+        datapassagem = Data[i]                  # Array com as datas de passagem
 
     # Formato de saída da data: 2022-11-10 18:00:00, com dt de 10s
 
