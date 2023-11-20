@@ -345,6 +345,8 @@ def tempocontato(df):
     for i in start:                             # iterando no start
         datapassagem = Data[i]                  # Data de passage
 
+    # Formato de saída da data: 2022-11-10 18:00:00, com dt de 10s
+
     return
 
 
