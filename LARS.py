@@ -347,6 +347,7 @@ def tempocontato(df):
         datapassagem = Data[i]                  # Array com as datas de passagem
 
     # Formato de saída da data: 2022-11-10 18:00:00, com dt de 10s
+    # Com dt = 10s, 24hrs = 8640 linhas. Avaliar um contato a cada no máximo 8640 linhas
 
     return
 
