@@ -344,8 +344,15 @@ def tempocontato(df):
     ''' Data de passagem '''
 
     datapassagem = []
+    diapassagem = []
     for i in start:                             # iterando no start
         datapassagem = Data[i]                  # Array com as datas de passagem
+        diapassagem = Data[i].day
+
+    print(diapassagem)
+
+    '''teste = df['Data'].tolist()
+    print(teste[0].day)'''
 
     # Formato de saída da data: 2022-11-10 18:00:00, com dt de 10s
     # Com dt = 10s, 24hrs = 8640 linhas. Avaliar um contato a cada no máximo 8640 linhas
@@ -363,9 +370,11 @@ if __name__ == '__main__':
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
     df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 2, 10, 3.0, 0.1, 0.1, 0.2)
+
+
     # (data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-        print(df)
+    """with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+        print(df)"""
 
     '''
     # plt3d(df)
