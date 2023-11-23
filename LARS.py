@@ -347,9 +347,17 @@ def tempocontato(df):
     diapassagem = []
     for i in start:                             # iterando no start
         datapassagem = Data[i]                  # Array com as datas de passagem
-        diapassagem = Data[i].day
+        diapassagem = Data[i].date()
 
-    print(diapassagem)
+    # diapassagem -> Dataframe -> groupby
+
+
+
+    for
+
+        data += timedelta(days=1)
+
+
 
     '''teste = df['Data'].tolist()
     print(teste[0].day)'''
