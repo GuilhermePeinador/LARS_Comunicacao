@@ -289,7 +289,7 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
     :param lat_gs: Latitude da Groundd Station em Graus (Norte)
     :param long_gs: Longitude da Groundd Station em Graus (Leste)
     :param elev: Elevação mínima para comunicação da antena em graus
-    :return: Ângulo de comunicação entre satélite e ground station
+    :return: Ângulo de comunicação entre satélite e ground station e a distância entre eles
     """
 
     Contato = []
@@ -302,6 +302,7 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
         VetorSatelite = np.array([df.iloc[i, df.columns.get_loc('rx')], df.iloc[i, df.columns.get_loc('ry')], df.iloc[i, df.columns.get_loc('rz')]])
 
         VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
+        Dist = VetorSateliteEstacao
 
         # Critério de Comunicação
         AComunicacao = np.pi \
@@ -317,6 +318,8 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
         df = pd.concat([df, df6], axis=1)
         df7 = pd.DataFrame(Contato, columns=['Contato'])
         df = pd.concat([df, df7], axis=1)
+        df8 = pd.DataFrame(Dist, columns=['Distância'])
+        df = pd.concat([df, df8], axis=1)
         df["end"] = None
         df.to_csv("Tempo de comunicação.csv", sep=',')
 
