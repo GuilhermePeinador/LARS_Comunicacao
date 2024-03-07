@@ -313,7 +313,7 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
         else:
             Contato.append(0)
 
-        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo de Contato'])
+        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo Elevação'])
         df = pd.concat([df, df6], axis=1)
         df7 = pd.DataFrame(Contato, columns=['Contato'])
         df = pd.concat([df, df7], axis=1)
@@ -353,19 +353,17 @@ def tempocontato(df):
 
     # diapassagem -> Dataframe -> groupby
 
+    index = df2["Contato"].tolist()
+    Tempo = df2["Data"].tolist()
+    datas = [x for x in Tempo]
+    passagens = []
+    for dia in dias:
+        count = 0
+        for passagem, comunica in zip(datas, index):
+            if passagem == dia and comunica == 1:
+                count += 1
+        passagens.append(count)
 
-
-    for
-
-        data += timedelta(days=1)
-
-
-
-    '''teste = df['Data'].tolist()
-    print(teste[0].day)'''
-
-    # Formato de saída da data: 2022-11-10 18:00:00, com dt de 10s
-    # Com dt = 10s, 24hrs = 8640 linhas. Avaliar um contato a cada no máximo 8640 linhas
 
     return
 
@@ -399,7 +397,15 @@ if __name__ == '__main__':
     index = df2["Contato"].tolist()
     Tempo = df2["Data"].tolist()
 
-    tempo_comunicacao_simulacao = index.count(1)
-    tempo_comunicacao_total = tempo_comunicacao_simulacao*10
-    #print(f'Tempo de comunicação (em segundos): {tempo_comunicacao_total}')
+    index = df2["Contato"].tolist()
+    Tempo = df2["Data"].tolist()
+    datas = [x for x in Tempo]
+    
+    passagens = []
+    for dia in dias:
+        count = 0
+        for passagem, comunica in zip(datas, index):
+            if passagem == dia and comunica == 1:
+                count += 1
+        passagens.append(count)
     '''
