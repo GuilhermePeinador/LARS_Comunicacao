@@ -289,7 +289,7 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
     :param lat_gs: Latitude da Groundd Station em Graus (Norte)
     :param long_gs: Longitude da Groundd Station em Graus (Leste)
     :param elev: Elevação mínima para comunicação da antena em graus
-    :return: Ângulo de comunicação entre satélite e ground station e a distância entre eles
+    :return: df + Ângulo de elevação, Vetor de contato e a Distância sat-gs
     """
 
     Contato = []
@@ -324,11 +324,9 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
 
         return df
 
-
 def tempocontato(df):
 
     Contato = df['Contato'].tolist()
-    Data = df['Data'].tolist()
 
     if Contato[0] == 1:
         start = np.concatenate((np.array([-1]), np.where(np.diff(Contato) == 1)[0]))
@@ -343,23 +341,13 @@ def tempocontato(df):
     tempodecontato = end-start                              # Tempo de contato
     npassagens = len(start)                                 # Número de passagens
 
-    ''' Data de passagem '''
+    datas = [x.date() for x in df['Data']]
+    dias = np.unique(datas)
 
-    datapassagem = []
-    diapassagem = []
-    for i in start:                             # iterando no start
-        datapassagem = Data[i]                  # Array com as datas de passagem
-        diapassagem = Data[i].date()
-
-    # diapassagem -> Dataframe -> groupby
-
-    index = df2["Contato"].tolist()
-    Tempo = df2["Data"].tolist()
-    datas = [x for x in Tempo]
     passagens = []
     for dia in dias:
         count = 0
-        for passagem, comunica in zip(datas, index):
+        for passagem, comunica in zip(datas, Contato):
             if passagem == dia and comunica == 1:
                 count += 1
         passagens.append(count)
@@ -379,7 +367,6 @@ if __name__ == '__main__':
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
     df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 2, 10, 3.0, 0.1, 0.1, 0.2)
 
-
     # (data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
     """with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
         print(df)"""
@@ -390,7 +377,9 @@ if __name__ == '__main__':
     # print(list(r.columns.values))
     print(list(df.columns.values))
     print(df)
+    '''
 
+    '''
     df2 = calculacomunicacao(df, -5.871778, -35.206864,15)
 
     df2 = df2[0:-1]
@@ -399,7 +388,7 @@ if __name__ == '__main__':
 
     index = df2["Contato"].tolist()
     Tempo = df2["Data"].tolist()
-    datas = [x for x in Tempo]
+    dias = [x for x in Tempo.date()]
     
     passagens = []
     for dia in dias:
