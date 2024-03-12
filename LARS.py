@@ -324,6 +324,7 @@ def calculacomunicacao(df, lat_gs, long_gs, elev):
 
         return df
 
+
 def tempocontato(df):
 
     Contato = df['Contato'].tolist()
@@ -367,9 +368,11 @@ if __name__ == '__main__':
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
     df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 2, 10, 3.0, 0.1, 0.1, 0.2)
 
-    # (data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
-    """with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-        print(df)"""
+# (data, SMA, e, Raan, argumento_perigeu, anomalia_verdadeira, inc, n_orb, delt, massa, largura, comprimento, altura)
+    """
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
+        print(df)
+    """
 
     '''
     # plt3d(df)
