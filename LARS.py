@@ -13,6 +13,47 @@ def resource_path(relative_path):
         base_path = os.path.abspath("src-LARS")
     return os.path.join(base_path, relative_path)
 
+def calculacomunicacao(df, lat_gs, long_gs, elev):
+    """
+    :param df: DataFrame de rx, ry e rz do CubeSat:
+    :param lat_gs: Latitude da Groundd Station em Graus (Norte)
+    :param long_gs: Longitude da Groundd Station em Graus (Leste)
+    :param elev: Elevação mínima para comunicação da antena em graus
+    :return: df + Ângulo de elevação, Vetor de contato e a Distância sat-gs
+    """
+
+    Contato = []
+    for i in range(df[df.columns[0]].count()):
+        dt = 10
+        R_E = 6371.00  # raio da Terra em km
+
+        VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
+
+        VetorSatelite = np.array([df.iloc[i, df.columns.get_loc('rx')], df.iloc[i, df.columns.get_loc('ry')], df.iloc[i, df.columns.get_loc('rz')]])
+
+        VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
+
+        # Critério de Comunicação
+        AComunicacao = np.pi \
+                - np.arccos((np.dot(VetorSatelite, VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
+                - np.arccos((np.dot(VetorTerraEstacao, VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
+
+        if AComunicacao >= np.radians(90+elev):
+            Contato.append(1)
+        else:
+            Contato.append(0)
+
+        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo Elevação'])
+        df = pd.concat([df, df6], axis=1)
+        df7 = pd.DataFrame(Contato, columns=['Contato'])
+        df = pd.concat([df, df7], axis=1)
+        df8 = pd.DataFrame(VetorSateliteEstacao, columns=['Distância'])
+        df = pd.concat([df, df8], axis=1)
+        df["end"] = None
+        df.to_csv("Tempo de comunicação.csv", sep=',')
+
+        return df
+
 
 def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan: float, argumento_perigeu: float,
                        anomalia_verdadeira: float, inclinacao: float, num_orbitas: int, delt: float, massa: float, largura: float,
@@ -283,46 +324,6 @@ def periodo_orbital(Perigeu):
     return (T_orb)
 
 
-def calculacomunicacao(df, lat_gs, long_gs, elev):
-    """
-    :param df: DataFrame de rx, ry e rz do CubeSat:
-    :param lat_gs: Latitude da Groundd Station em Graus (Norte)
-    :param long_gs: Longitude da Groundd Station em Graus (Leste)
-    :param elev: Elevação mínima para comunicação da antena em graus
-    :return: df + Ângulo de elevação, Vetor de contato e a Distância sat-gs
-    """
-
-    Contato = []
-    for i in range(df[df.columns[0]].count()):
-        dt = 10
-        R_E = 6371.00  # raio da Terra em km
-
-        VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
-
-        VetorSatelite = np.array([df.iloc[i, df.columns.get_loc('rx')], df.iloc[i, df.columns.get_loc('ry')], df.iloc[i, df.columns.get_loc('rz')]])
-
-        VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
-
-        # Critério de Comunicação
-        AComunicacao = np.pi \
-                - np.arccos((np.dot(VetorSatelite, VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
-                - np.arccos((np.dot(VetorTerraEstacao, VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
-
-        if AComunicacao >= np.radians(90+elev):
-            Contato.append(1)
-        else:
-            Contato.append(0)
-
-        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo Elevação'])
-        df = pd.concat([df, df6], axis=1)
-        df7 = pd.DataFrame(Contato, columns=['Contato'])
-        df = pd.concat([df, df7], axis=1)
-        df8 = pd.DataFrame(VetorSateliteEstacao, columns=['Distância'])
-        df = pd.concat([df, df8], axis=1)
-        df["end"] = None
-        df.to_csv("Tempo de comunicação.csv", sep=',')
-
-        return df
 
 
 def tempocontato(df):
