@@ -354,7 +354,7 @@ def tempocontato(df):
         passagens.append(count)
 
 
-    return
+    return tempodecontato, npassagens, passagens
 
 
 if __name__ == '__main__':
@@ -367,6 +367,8 @@ if __name__ == '__main__':
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
     df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 2, 10, 3.0, 0.1, 0.1, 0.2)
+
+    tempodecontato, npassagens, passagens = tempocontato(df)
 
 # (data, SMA, e, Raan, argumento_perigeu, anomalia_verdadeira, inc, n_orb, delt, massa, largura, comprimento, altura)
     """
