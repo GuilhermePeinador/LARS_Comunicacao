@@ -3,56 +3,74 @@
 from datetime import datetime
 import numpy as np
 import pandas as pd
-
+'''
+Coordenadas Antena INPE Natal
+Latitude: -5.871778
+Longitude: -35.206864
+'''
 
 def resource_path(relative_path):
 
     try:
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath("src-LARS")
+        base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def calculacomunicacao(df, lat_gs, long_gs, elev):
-    """
-    :param df: DataFrame de rx, ry e rz do CubeSat:
-    :param lat_gs: Latitude da Groundd Station em Graus (Norte)
-    :param long_gs: Longitude da Groundd Station em Graus (Leste)
-    :param elev: Elevação mínima para comunicação da antena em graus
-    :return: df + Ângulo de elevação, Vetor de contato e a Distância sat-gs
-    """
+#todo def
+# Mudar a função
+def calculacomunicacao(df,lat_gs = np.radians(-5.871778),long_gs = np.radians(-35.206864),R_E = 6371.00):
 
-    Contato = []
-    for i in range(df[df.columns[0]].count()):
-        dt = 10
-        R_E = 6371.00  # raio da Terra em km
+    Contato =[]
+    angulo = []
+    dist   = []
 
-        VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
+#    lat_gs = np.radians(-5.871778)
+#    long_gs = np.radians(-35.206864)
+#    R_E = 6371.00  # raio da Terra em km
+    VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
+
+    for i in range (df[df.columns[0]].count()):
 
         VetorSatelite = np.array([df.iloc[i, df.columns.get_loc('rx')], df.iloc[i, df.columns.get_loc('ry')], df.iloc[i, df.columns.get_loc('rz')]])
 
         VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
+        slantrange = np.linalg.norm(VetorSateliteEstacao)
 
-        # Critério de Comunicação
+        #Critério de Comunicação
         AComunicacao = np.pi \
-                - np.arccos((np.dot(VetorSatelite, VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*np.linalg.norm(VetorSateliteEstacao))) \
-                - np.arccos((np.dot(VetorTerraEstacao, VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
+                - np.arccos((np.dot(VetorSatelite,VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*slantrange)) \
+                - np.arccos((np.dot(VetorTerraEstacao,VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
 
-        if AComunicacao >= np.radians(90+elev):
+        dist.append(slantrange)
+        angulo.append(AComunicacao)
+
+        if AComunicacao >= np.radians(105): #90 graus (horizonte) + 15 (elevação)
             Contato.append(1)
+            #print("1") #Tem comunicação
         else:
             Contato.append(0)
+            #print("0") # não tem comunicação
 
-        df6 = pd.DataFrame(AComunicacao, columns=['Ângulo Elevação'])
-        df = pd.concat([df, df6], axis=1)
-        df7 = pd.DataFrame(Contato, columns=['Contato'])
-        df = pd.concat([df, df7], axis=1)
-        df8 = pd.DataFrame(VetorSateliteEstacao, columns=['Distância'])
-        df = pd.concat([df, df8], axis=1)
-        df["end"] = None
-        df.to_csv("Tempo de comunicação.csv", sep=',')
-
-        return df
+    df6 = pd.DataFrame(Contato, columns=['Contato'])
+    df7 = pd.DataFrame(angulo, columns=['Angulo Elevacao'])
+    df8 = pd.DataFrame(dist, columns=['Slunt Range'])
+    df = pd.concat([df,df6], axis=1)
+    df = pd.concat([df,df7], axis=1)
+    df = pd.concat([df,df8], axis=1)
+    df["end"] = None
+    #df.to_csv("Tempo de comunicação.csv", sep=',')
+    #print (df)
+    return df
+"""
+    Universidade Federal de Santa Catarina
+    Laboratory of Applications and Research in Space - LARS
+    Orbital Mechanics Division
+    Título do Algoritmo = Codigo principal de propagacao orbital e analise termica
+    Autor= Rodrigo S. Cardozo
+    Versão = 0.1.0
+    Data = 05/04/2023
+"""
 
 
 def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan: float, argumento_perigeu: float,
@@ -99,10 +117,10 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
         R_terra = 6371
         # vetor posicao inicial
         r = posicao
-        m = massa  # massa do cubesat
-        a = largura  # comprimento do sat
-        b = comprimento  # largura do sat
-        c = altura  # altura do sat
+        m = (massa)  # massa do cubesat
+        a = (largura)  # comprimento do sat
+        b = (comprimento)  # largura do sat
+        c = (altura)  # altura do sat
         Ix3 = (m / 12) * (b ** 2 + c ** 2)  # momento de inercia na direcao x
         Iy3 = (m / 12) * (a ** 2 + c ** 2)  # momento de inercia na direcao y
         Iz3 = (m / 12) * (a ** 2 + b ** 2)  # momento de inercia na direcao z
@@ -173,6 +191,7 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
     teta = np.radians(inclinacao)
     psi = np.radians(argumento_perigeu)
 
+
     Q_rot = np.array([[np.cos(psi) * np.cos(phi) - np.sin(psi) * np.sin(phi) * np.cos(teta),
                        np.cos(psi) * np.sin(phi) + np.sin(psi) * np.cos(teta) * np.cos(phi),
                        np.sin(psi) * np.sin(teta)],
@@ -184,14 +203,14 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
 
     ano = [np.cos(np.radians(anomalia_verdadeira)), np.sin(np.radians(anomalia_verdadeira)), 0]
     r = [((h1**2/mu)*1/(1 + excentricidade*np.cos(np.radians(anomalia_verdadeira)))) * a for a in ano]
-    # print(r)
+    #print(r)
     Posi_ini = np.dot(np.transpose(Q_rot), r)
-    # print(Posi_ini)
-    lamb_e = raan0  # (np.arctan2(Posi_ini[1], Posi_ini[0]))
+    #print(Posi_ini)
+    lamb_e = raan0 # (np.arctan2(Posi_ini[1], Posi_ini[0]))
     latitude0 = np.degrees((np.arcsin(Posi_ini[2] / np.linalg.norm(Posi_ini))))
     longitude0 = np.degrees((np.arctan2(Posi_ini[1], Posi_ini[0])))
-    # print(f'latitude0: {latitude0}')
-    # print(f'longitude0: {longitude0}')
+    #print(f'latitude0: {latitude0}')
+    #print(f'longitude0: {longitude0}')
     '''import pyproj
     input_proj = pyproj.CRS.from_epsg(4328)
     # Define o sistema de coordenadas de saída (geográfico)
@@ -201,8 +220,8 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
     # Converte as coordenadas do sistema de coordenadas geocêntricas para o sistema de coordenadas geográficas
     longitude0, latitude0, alt = transformer.transform(b[0] * 1000.0, b[1] * 1000.0, b[2] * 1000.0, radians=True)'''
 
-    lat = [latitude0]
-    long = [longitude0]
+    lat = [(latitude0)]
+    long = [(longitude0)]
 
     # comeco da integracao
 
@@ -221,7 +240,7 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
     time_simu = [0]
     cont = 0
     r = []
-    # while cont < T:
+    #while cont < T:
 
     for i in range(0,int(T)+1, int(delt)):
         qi = [h0, ecc0, true_anomaly0, raan0, inc0, arg_per0]
@@ -286,9 +305,9 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
         R_ECEF = np.dot(np.transpose(Q_rot), r_p)
         r.append(np.array(R_ECEF))
 
-        latitude = (np.arcsin(R_ECEF[2]/np.linalg.norm(R_ECEF)))
+        latitude = ((np.arcsin(R_ECEF[2]/np.linalg.norm(R_ECEF))))
 
-        longitude = (np.arctan2(R_ECEF[1], R_ECEF[0]))
+        longitude = ((np.arctan2(R_ECEF[1],R_ECEF[0])))
 
         '''import pyproj
         input_proj = pyproj.CRS.from_epsg(4328)
@@ -303,15 +322,26 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
         long.append(np.degrees(longitude))
     import os.path
     r = pd.DataFrame(r, columns=['rx', 'ry', 'rz'])
-    dfdata = pd.DataFrame(data, columns=['Data'])
-    r = pd.concat([r, dfdata], axis=1)
+    df2 = pd.DataFrame(data, columns=['Data'])
+    r = pd.concat([r,df2], axis=1)
     r['latitude'] = np.degrees(np.arcsin(r['rz'] / (r['rx']**2 + r['ry']**2 + r['rz']**2)**0.5))
     r['longitude'] = np.degrees(np.arctan2(r['ry'], r['rx']))
     r['r'] = np.sqrt(r['rx']**2 + r['ry']**2 + r['rz']**2)
     r['end'] = 'end'
-    # r.to_csv(os.path.join('./results/', 'ECEF_R.csv'), sep=',')
+    #r.to_csv(os.path.join('./results/', 'ECEF_R.csv'), sep=',')
 
     return r
+
+"""
+    Universidade Federal de Santa Catarina
+    Thermal Fluid Flow Group (T2F) - Aerospace Engineering Team
+    Orbital Mechanics Division
+
+    Título do Algoritmo: Integrador de velocidade angular por quaternions
+    Autor: Rodrigo S. Cardozo
+    Versão: 0.1
+    Data: 08/07/2022
+"""
 
 
 def periodo_orbital(Perigeu):
@@ -322,9 +352,6 @@ def periodo_orbital(Perigeu):
     mu = 398600
     T_orb = float(((2 * np.pi) / (np.sqrt(mu))) * (Perigeu ** (3 / 2)))
     return (T_orb)
-
-
-
 
 def tempocontato(df):
 
@@ -357,50 +384,34 @@ def tempocontato(df):
 
     return tempodecontato, npassagens, passagens
 
-
 if __name__ == '__main__':
     from datetime import datetime
     import numpy as np
     import pandas as pd
-    import os
-    import sys
+#    from Plots import *
+    import os, sys
+
 
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
-    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 2, 10, 3.0, 0.1, 0.1, 0.2)
+    #df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 300, 10, 3.0, 0.1, 0.1, 0.2)
+    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 300, 10, 3.0, 0.1, 0.1, 0.2)
+    #(data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
 
-    tempodecontato, npassagens, passagens = tempocontato(df)
 
-# (data, SMA, e, Raan, argumento_perigeu, anomalia_verdadeira, inc, n_orb, delt, massa, largura, comprimento, altura)
-    """
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None):  # more options can be specified also
-        print(df)
-    """
+    #plt3d(df)
+    #plot_groundtrack_2D(df)
+    #print(df)
 
-    '''
-    # plt3d(df)
-    # plot_groundtrack_2D(df)
-    # print(list(r.columns.values))
-    print(list(df.columns.values))
-    print(df)
-    '''
 
-    '''
-    df2 = calculacomunicacao(df, -5.871778, -35.206864,15)
+    df2 = calculacomunicacao(df)
+
+    tempodecontato, npassagens, passagens = tempocontato(df2)
 
     df2 = df2[0:-1]
     index = df2["Contato"].tolist()
     Tempo = df2["Data"].tolist()
 
-    index = df2["Contato"].tolist()
-    Tempo = df2["Data"].tolist()
-    dias = [x for x in Tempo.date()]
-    
-    passagens = []
-    for dia in dias:
-        count = 0
-        for passagem, comunica in zip(datas, index):
-            if passagem == dia and comunica == 1:
-                count += 1
-        passagens.append(count)
-    '''
+    tempo_comunicacao_simulacao = index.count(1)
+    tempo_comunicacao_total = tempo_comunicacao_simulacao*10
+    #print(f'Tempo de comunicação (em segundos): {tempo_comunicacao_total}')
