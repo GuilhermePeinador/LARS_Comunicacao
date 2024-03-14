@@ -17,8 +17,6 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-#todo def
-# Mudar a função
 def calculacomunicacao(df,lat_gs = np.radians(-5.871778),long_gs = np.radians(-35.206864),R_E = 6371.00):
 
     Contato =[]
