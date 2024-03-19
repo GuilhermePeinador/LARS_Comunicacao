@@ -373,7 +373,18 @@ def tempocontato(df):
     for i in start:
         datastart = Data[i]
         datapassagem.append(datastart.date())
-    datapassagem = np.unique(datapassagem)
+    datasunicas = np.unique(datapassagem)
+
+    from collections import Counter
+
+    #datas = [datetime.strptime(data, '%m/%d/%Y').date() for data in datapassagem]
+
+    contagem_datas = Counter(datapassagem)
+
+    passagenspordia = []
+    for data, frequencia in contagem_datas.items():
+        contadorpassagem = frequencia, data.strftime('%Y/%m/%d')
+        passagenspordia.append(contadorpassagem)
 
     datas = [x.date() for x in df['Data']]
     dias = np.unique(datas)
@@ -387,7 +398,7 @@ def tempocontato(df):
         passagens.append(count)
 
 
-    return tempodecontato, npassagens, passagens, datapassagem
+    return tempodecontato, npassagens, passagens, datasunicas, passagenspordia
 
 if __name__ == '__main__':
     from datetime import datetime
@@ -400,7 +411,7 @@ if __name__ == '__main__':
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
     #df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 300, 10, 3.0, 0.1, 0.1, 0.2)
-    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 300, 10, 3.0, 0.1, 0.1, 0.2)
+    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 50, 10, 3.0, 0.1, 0.1, 0.2)
     #(data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
 
 
@@ -411,9 +422,9 @@ if __name__ == '__main__':
 
     df2 = calculacomunicacao(df)
 
-    tempodecontato, npassagens, passagens, datapassagem = tempocontato(df2)
+    tempodecontato, npassagens, passagens, datasunicas, passagenspordia = tempocontato(df2)
 
-    print(tempodecontato, npassagens, passagens, datapassagem)
+    print(tempodecontato, npassagens, passagens, datasunicas, passagenspordia)
 
 '''
     df2 = df2[0:-1]
