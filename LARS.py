@@ -354,6 +354,7 @@ def periodo_orbital(Perigeu):
 def tempocontato(df):
 
     Contato = df['Contato'].tolist()
+    Data = df['Data'].tolist()
 
     if Contato[0] == 1:
         start = np.concatenate((np.array([-1]), np.where(np.diff(Contato) == 1)[0]))
@@ -368,6 +369,12 @@ def tempocontato(df):
     tempodecontato = end-start                              # Tempo de contato
     npassagens = len(start)                                 # Número de passagens
 
+    datapassagem = []
+    for i in start:
+        datastart = Data[i]
+        datapassagem.append(datastart.date())
+    datapassagem = np.unique(datapassagem)
+
     datas = [x.date() for x in df['Data']]
     dias = np.unique(datas)
 
@@ -380,7 +387,7 @@ def tempocontato(df):
         passagens.append(count)
 
 
-    return tempodecontato, npassagens, passagens
+    return tempodecontato, npassagens, passagens, datapassagem
 
 if __name__ == '__main__':
     from datetime import datetime
@@ -404,7 +411,9 @@ if __name__ == '__main__':
 
     df2 = calculacomunicacao(df)
 
-    tempodecontato, npassagens, passagens = tempocontato(df2)
+    tempodecontato, npassagens, passagens, datapassagem = tempocontato(df2)
+
+    print(tempodecontato, npassagens, passagens, datapassagem)
 
     df2 = df2[0:-1]
     index = df2["Contato"].tolist()
