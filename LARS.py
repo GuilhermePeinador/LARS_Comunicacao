@@ -415,6 +415,7 @@ if __name__ == '__main__':
 
     print(tempodecontato, npassagens, passagens, datapassagem)
 
+'''
     df2 = df2[0:-1]
     index = df2["Contato"].tolist()
     Tempo = df2["Data"].tolist()
@@ -422,3 +423,4 @@ if __name__ == '__main__':
     tempo_comunicacao_simulacao = index.count(1)
     tempo_comunicacao_total = tempo_comunicacao_simulacao*10
     #print(f'Tempo de comunicação (em segundos): {tempo_comunicacao_total}')
+'''
