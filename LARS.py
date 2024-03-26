@@ -17,38 +17,39 @@ def resource_path(relative_path):
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
 
-def calculacomunicacao(df,lat_gs = np.radians(-5.871778),long_gs = np.radians(-35.206864),R_E = 6371.00):
 
-    Contato =[]
+def calculacomunicacao(df, lat_gs=np.radians(-5.871778), long_gs=np.radians(-35.206864), R_E=6371.00):
+
+    Contato = []
     angulo = []
-    dist   = []
+    dist = []
 
 #    lat_gs = np.radians(-5.871778)
 #    long_gs = np.radians(-35.206864)
 #    R_E = 6371.00  # raio da Terra em km
     VetorTerraEstacao = np.array([R_E * np.cos(lat_gs) * np.cos(long_gs), R_E * np.cos(lat_gs) * np.sin(long_gs), R_E * np.sin(lat_gs)])
 
-    for i in range (df[df.columns[0]].count()):
+    for i in range(df[df.columns[0]].count()):
 
         VetorSatelite = np.array([df.iloc[i, df.columns.get_loc('rx')], df.iloc[i, df.columns.get_loc('ry')], df.iloc[i, df.columns.get_loc('rz')]])
 
         VetorSateliteEstacao = VetorSatelite - VetorTerraEstacao
-        slantrange = np.linalg.norm(VetorSateliteEstacao)
+        sluntrange = np.linalg.norm(VetorSateliteEstacao)
 
-        #Critério de Comunicação
+        # Critério de Comunicação
         AComunicacao = np.pi \
-                - np.arccos((np.dot(VetorSatelite,VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*slantrange)) \
-                - np.arccos((np.dot(VetorTerraEstacao,VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
+                - np.arccos((np.dot(VetorSatelite, VetorSateliteEstacao))/(np.linalg.norm(VetorSatelite)*sluntrange)) \
+                - np.arccos((np.dot(VetorTerraEstacao, VetorSatelite))/(np.linalg.norm(VetorTerraEstacao)*np.linalg.norm(VetorSatelite)))
 
-        dist.append(slantrange)
+        dist.append(sluntrange)
         angulo.append(AComunicacao)
 
-        if AComunicacao >= np.radians(105): #90 graus (horizonte) + 15 (elevação)
+        if AComunicacao >= np.radians(105):  # 90 graus (horizonte) + 15 (elevação)
             Contato.append(1)
-            #print("1") #Tem comunicação
+            # print("1") # Tem comunicação
         else:
             Contato.append(0)
-            #print("0") # não tem comunicação
+            # print("0") # não tem comunicação
 
     df6 = pd.DataFrame(Contato, columns=['Contato'])
     df7 = pd.DataFrame(angulo, columns=['Angulo Elevacao'])
@@ -57,8 +58,8 @@ def calculacomunicacao(df,lat_gs = np.radians(-5.871778),long_gs = np.radians(-3
     df = pd.concat([df,df7], axis=1)
     df = pd.concat([df,df8], axis=1)
     df["end"] = None
-    #df.to_csv("Tempo de comunicação.csv", sep=',')
-    #print (df)
+    # df.to_csv("Tempo de comunicação.csv", sep=',')
+    # print (df)
     return df
 """
     Universidade Federal de Santa Catarina
@@ -326,9 +327,10 @@ def propagador_orbital(data: str, semi_eixo: float, excentricidade: float, raan:
     r['longitude'] = np.degrees(np.arctan2(r['ry'], r['rx']))
     r['r'] = np.sqrt(r['rx']**2 + r['ry']**2 + r['rz']**2)
     r['end'] = 'end'
-    #r.to_csv(os.path.join('./results/', 'ECEF_R.csv'), sep=',')
+    # r.to_csv(os.path.join('./results/', 'ECEF_R.csv'), sep=',')
 
     return r
+
 
 """
     Universidade Federal de Santa Catarina
@@ -349,7 +351,8 @@ def periodo_orbital(Perigeu):
     import numpy as np
     mu = 398600
     T_orb = float(((2 * np.pi) / (np.sqrt(mu))) * (Perigeu ** (3 / 2)))
-    return (T_orb)
+    return T_orb
+
 
 def tempocontato(df):
 
@@ -377,8 +380,6 @@ def tempocontato(df):
 
     from collections import Counter
 
-    #datas = [datetime.strptime(data, '%m/%d/%Y').date() for data in datapassagem]
-
     contagem_datas = Counter(datapassagem)
 
     passagenspordia = []
@@ -397,41 +398,30 @@ def tempocontato(df):
                 count += 1
         passagens.append(count)
 
-
     return tempodecontato, npassagens, passagens, datasunicas, passagenspordia
 
+
 if __name__ == '__main__':
+
     from datetime import datetime
     import numpy as np
     import pandas as pd
-#    from Plots import *
-    import os, sys
+#   from Plots import *
+    import os
+    import sys
 
 
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
-    #df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 300, 10, 3.0, 0.1, 0.1, 0.2)
-    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 50, 10, 3.0, 0.1, 0.1, 0.2)
-    #(data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
+    # df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 300, 10, 3.0, 0.1, 0.1, 0.2)
+    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 300, 10, 3.0, 0.1, 0.1, 0.2)
+    # (data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
 
-
-    #plt3d(df)
-    #plot_groundtrack_2D(df)
-    #print(df)
-
+    # plt3d(df)
+    # plot_groundtrack_2D(df)
 
     df2 = calculacomunicacao(df)
 
     tempodecontato, npassagens, passagens, datasunicas, passagenspordia = tempocontato(df2)
 
     print(tempodecontato, npassagens, passagens, datasunicas, passagenspordia)
-
-'''
-    df2 = df2[0:-1]
-    index = df2["Contato"].tolist()
-    Tempo = df2["Data"].tolist()
-
-    tempo_comunicacao_simulacao = index.count(1)
-    tempo_comunicacao_total = tempo_comunicacao_simulacao*10
-    #print(f'Tempo de comunicação (em segundos): {tempo_comunicacao_total}')
-'''
