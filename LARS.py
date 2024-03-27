@@ -414,7 +414,7 @@ if __name__ == '__main__':
     input_string = ' 11/10/2022 18:00:00'
     data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
     # df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 300, 10, 3.0, 0.1, 0.1, 0.2)
-    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 300, 10, 3.0, 0.1, 0.1, 0.2)
+    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 500, 10, 3.0, 0.1, 0.1, 0.2)
     # (data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
 
     # plt3d(df)
