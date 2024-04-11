@@ -411,10 +411,10 @@ if __name__ == '__main__':
     import sys
 
 
-    input_string = ' 11/10/2022 18:00:00'
-    data = datetime.strptime(input_string, " %m/%d/%Y %H:%M:%S")
+    input_string = ' 10/11/2022 18:00:00'
+    data = datetime.strptime(input_string, " %d/%m/%Y %H:%M:%S")
     # df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 38.30837095, 300, 10, 3.0, 0.1, 0.1, 0.2)
-    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 500, 10, 3.0, 0.1, 0.1, 0.2)
+    df = propagador_orbital(data, 7000.0, 0.002, 0.0, 0.0, 0.0, 98, 10, 10, 3.0, 0.1, 0.1, 0.2)
     # (data, semi_eixo, excentricidade, Raan, argumento_perigeu, anomalia_verdadeira, inclinacao, num_orbitas, delt, massa, largura, comprimento, altura)
 
     # plt3d(df)
@@ -422,6 +422,16 @@ if __name__ == '__main__':
 
     df2 = calculacomunicacao(df)
 
-    tempodecontato, npassagens, passagens, datasunicas, passagenspordia = tempocontato(df2)
+    # Salvando dados de comunicação -------
 
-    print(tempodecontato, npassagens, passagens, datasunicas, passagenspordia)
+    df2.drop(["rx", "ry", "rz", "end"], axis=1, inplace=True)
+    # pd.set_option('display.max_columns', None)
+    # print(df2.head(1))
+    # df2["Slunt Range"].plot()
+    # import matplotlib.pyplot as plt
+    # plt.show()
+    pd.to_pickle(df2, "dataframecomunicacao")
+
+    tempodecontato, npassagens, passagens, datasunicas, passagenspordia = tempocontato(df2)
+    np.savez('dadoscomunicacao',temcaonta=tempodecontato, npass=npassagens, passa=passagens, datas=datasunicas, passperday=passagenspordia)
+
